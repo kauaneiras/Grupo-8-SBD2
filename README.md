@@ -10,7 +10,7 @@ Neste projeto, estamos utilizando a arquitetura Medallion, organizada em três c
 
 ```bash
 dw-medallion/
- ├── Data_Layer/
+ ├── Data Layer/
  │   ├── raw/      # Dados originais - Camada bronze
  │   ├── silver/   # Dados limpos e padronizados - Camada prata
  │   ├── gold/     # Dados modelados para BI - Camada Ouro
@@ -24,12 +24,16 @@ dw-medallion/
 Este repositório utiliza Git Large File Storage (Git LFS) para que seja possível realizar o upload do arquivo .csv.
 Para garantir que todos os arquivos sejam baixados corretamente, siga os passos abaixo:
 
+> **Atenção:**  
+> - No **Windows**, é necessário realizar o [download e instalação do Git LFS](https://git-lfs.com/) antes de prosseguir.  
+> - No **Linux**, instale o Git LFS utilizando o gerenciador de pacotes da sua distribuição (ex.: `sudo apt install git-lfs`).
+
 ```bash
 git lfs install
 
-git clone "https://github.com/kauaneiras/Grupo-8-SBD2.git"
+git clone https://github.com/kauaneiras/Grupo-8-SBD2.git # Pode levar alguns minutos devido ao uso do Git LFS
 
-cd .\Grupo-8-SBD2\
+cd Grupo-8-SBD2
 
 git lfs pull
 ```
@@ -39,7 +43,7 @@ Para verificar se os arquivos foram devidamente baixados rode o seguinte comando
 git lfs ls-files
 ```
 
-Saída esperada (exemplo):
+Saída esperada:
 ```bash
 c8f3e0de0f * Data Layer/raw/dados_brutos.csv
 ``` 
