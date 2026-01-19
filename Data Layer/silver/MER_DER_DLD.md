@@ -25,16 +25,15 @@ TB_FILMES_SILVER(<u>id</u>, title, original_title, original_language, release_da
 O Diagrama Entidade-Relacionamento (DER) é uma representação gráfica do modelo de dados em nível conceitual. Foca em entidades e seus atributos, sem detalhar aspectos de implementação física.
 
 ### DER Conceitual do Projeto (Camada Silver)
+![DER](./assets/DER.png)
 
-COLOCAR A IMAGEM AQUI
 
 ## DIAGRAMA LÓGICO DE DADOS (DLD)
 
 O Diagrama Lógico de Dados descreve a estrutura lógica do banco: tabelas, colunas, tipos, chaves e constraints. Ele detalha como o modelo conceitual é representado logicamente.
 
 ### DLD do Projeto (Camada Silver)
-
-COLOCAR A IMAGEM AQUI
+![DER](./assets/DLD.png)
 
 ### Constraints
 
