@@ -23,12 +23,6 @@ CREATE TABLE IF NOT EXISTS silver.filmes (
     
     -- Informações Temporais
     release_date         DATE,
-    release_year         INTEGER,
-    release_month        INTEGER,
-    release_month_name   VARCHAR(20),
-    release_day_of_week  INTEGER,
-    release_day_name     VARCHAR(20),
-    release_decade       INTEGER,
     
     -- Categorização
     genres               TEXT,
@@ -61,10 +55,6 @@ CREATE TABLE IF NOT EXISTS silver.filmes (
 -- ÍNDICES
 -- =============================================================================
 
--- Índice para consultas por ano de lançamento
-CREATE INDEX IF NOT EXISTS idx_filmes_release_year 
-    ON silver.filmes(release_year);
-
 -- Índice para filtragem por gênero principal
 CREATE INDEX IF NOT EXISTS idx_filmes_primary_genre 
     ON silver.filmes(primary_genre);
@@ -80,10 +70,6 @@ CREATE INDEX IF NOT EXISTS idx_filmes_popularity
 -- Índice para análise por faixa orçamentária
 CREATE INDEX IF NOT EXISTS idx_filmes_budget_tier 
     ON silver.filmes(budget_tier);
-
--- Índice para consultas por década
-CREATE INDEX IF NOT EXISTS idx_filmes_release_decade 
-    ON silver.filmes(release_decade);
 
 -- Índice para consultas por país principal
 CREATE INDEX IF NOT EXISTS idx_filmes_primary_country 
@@ -103,12 +89,6 @@ COMMENT ON COLUMN silver.filmes.runtime IS 'Duração do filme em minutos';
 COMMENT ON COLUMN silver.filmes.status IS 'Status de lançamento (Released, Post Production, etc.)';
 
 COMMENT ON COLUMN silver.filmes.release_date IS 'Data de lançamento do filme';
-COMMENT ON COLUMN silver.filmes.release_year IS 'Ano de lançamento extraído da data';
-COMMENT ON COLUMN silver.filmes.release_month IS 'Mês de lançamento (1-12)';
-COMMENT ON COLUMN silver.filmes.release_month_name IS 'Nome do mês de lançamento';
-COMMENT ON COLUMN silver.filmes.release_day_of_week IS 'Dia da semana (0=Segunda a 6=Domingo)';
-COMMENT ON COLUMN silver.filmes.release_day_name IS 'Nome do dia da semana';
-COMMENT ON COLUMN silver.filmes.release_decade IS 'Década de lançamento (ex: 1990, 2000, 2010)';
 
 COMMENT ON COLUMN silver.filmes.genres IS 'Lista de gêneros em formato JSON';
 COMMENT ON COLUMN silver.filmes.primary_genre IS 'Gênero principal (primeiro da lista)';
