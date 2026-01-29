@@ -119,13 +119,12 @@ CREATE TABLE dw.dim_gen (
 COMMENT ON TABLE dw.dim_gen IS 'Dimensão de Gêneros (Genres)';
 
 -- -----------------------------------------------------------------------------
--- Tabela: dw.dim_prd_cmp (Production Companies)
-
+-- Tabela: dw.dim_prd_cmp (Production Companies - Todas as Produtoras)
 -- -----------------------------------------------------------------------------
 CREATE TABLE dw.dim_prd_cmp (
-    srk_pco     INTEGER NOT NULL,          -- Surrogate Key
-    pco         VARCHAR(255),              -- company
-    CONSTRAINT pk_dim_prd_cmp PRIMARY KEY (srk_pco)
+    srk_prd     INTEGER NOT NULL,          -- Surrogate Key
+    prd         VARCHAR(255),              -- company
+    CONSTRAINT pk_dim_prd_cmp PRIMARY KEY (srk_prd)
 );
 
 COMMENT ON TABLE dw.dim_prd_cmp IS 'Dimensão de todas as produtoras';
@@ -137,6 +136,7 @@ COMMENT ON TABLE dw.dim_prd_cmp IS 'Dimensão de todas as produtoras';
 
 CREATE TABLE dw.fat_mov (
     srk_ttl     INTEGER NOT NULL,          -- Surrogate Key (Baseada no ID)
+    movie_id    INTEGER,                   -- ID original do filme (para ligação com tabela ponte)
     ttl         VARCHAR(500),              -- title
     org_ttl     VARCHAR(500),              -- original_title
     crt         TIMESTAMP,                 -- created_at
@@ -147,10 +147,9 @@ CREATE TABLE dw.fat_mov (
     srk_pft     INTEGER,                   -- FK para dim_pft
     srk_eng     INTEGER,                   -- FK para dim_eng
     srk_lng     INTEGER,                   -- FK para dim_lng
-    srk_cmp     INTEGER,                   -- FK para dim_cmp
+    srk_cmp     INTEGER,                   -- FK para dim_cmp (produtora principal)
     srk_ctr     INTEGER,                   -- FK para dim_ctr
     srk_rte     INTEGER,                   -- FK para dim_rte
-    srk_pco     INTEGER,                   -- FK para dim_prd_cmp
     
     CONSTRAINT pk_fat_mov PRIMARY KEY (srk_ttl)
 );
@@ -180,8 +179,28 @@ ALTER TABLE dw.fat_mov ADD CONSTRAINT frk_ctr
 ALTER TABLE dw.fat_mov ADD CONSTRAINT frk_rte 
     FOREIGN KEY (srk_rte) REFERENCES dw.dim_rte(srk_rte);
 
-ALTER TABLE dw.fat_mov ADD CONSTRAINT frk_prd 
-    FOREIGN KEY (srk_pco) REFERENCES dw.dim_prd_cmp(srk_pco);
+
+-- =============================================================================
+-- TABELA PONTE: dw.brg_mov_prd (Bridge Filme <-> Produtoras)
+-- Relacionamento N:N entre filmes e produtoras
+-- =============================================================================
+
+CREATE TABLE dw.brg_mov_prd (
+    srk_ttl     INTEGER NOT NULL,          -- FK para fat_mov
+    srk_prd     INTEGER NOT NULL,          -- FK para dim_prd_cmp
+    CONSTRAINT pk_brg_mov_prd PRIMARY KEY (srk_ttl, srk_prd)
+);
+
+-- Chaves Estrangeiras da Tabela Ponte
+ALTER TABLE dw.brg_mov_prd ADD CONSTRAINT fk_brg_ttl 
+    FOREIGN KEY (srk_ttl) REFERENCES dw.fat_mov(srk_ttl);
+
+ALTER TABLE dw.brg_mov_prd ADD CONSTRAINT fk_brg_prd 
+    FOREIGN KEY (srk_prd) REFERENCES dw.dim_prd_cmp(srk_prd);
+
+COMMENT ON TABLE dw.brg_mov_prd IS 'Tabela ponte para relacionamento N:N entre filmes e produtoras';
+COMMENT ON COLUMN dw.brg_mov_prd.srk_ttl IS 'Chave estrangeira para tabela fato filme';
+COMMENT ON COLUMN dw.brg_mov_prd.srk_prd IS 'Chave estrangeira para dimensão de produtoras';
 
 
 -- =============================================================================
@@ -196,7 +215,11 @@ CREATE INDEX idx_fat_mov_srk_lng ON dw.fat_mov(srk_lng);
 CREATE INDEX idx_fat_mov_srk_cmp ON dw.fat_mov(srk_cmp);
 CREATE INDEX idx_fat_mov_srk_ctr ON dw.fat_mov(srk_ctr);
 CREATE INDEX idx_fat_mov_srk_rte ON dw.fat_mov(srk_rte);
-CREATE INDEX idx_fat_mov_srk_pco ON dw.fat_mov(srk_pco);
+CREATE INDEX idx_fat_mov_movie_id ON dw.fat_mov(movie_id);
+
+-- Índices da Tabela Ponte
+CREATE INDEX idx_brg_mov_prd_ttl ON dw.brg_mov_prd(srk_ttl);
+CREATE INDEX idx_brg_mov_prd_prd ON dw.brg_mov_prd(srk_prd);
 
 
 -- =============================================================================
@@ -211,7 +234,7 @@ COMMENT ON COLUMN dw.fat_mov.srk_gen IS 'Chave para dimensão Genres (Gêneros)'
 COMMENT ON COLUMN dw.fat_mov.srk_pft IS 'Chave para dimensão Profit (Financeiro)';
 COMMENT ON COLUMN dw.fat_mov.srk_eng IS 'Chave para dimensão Engagement (Engajamento)';
 COMMENT ON COLUMN dw.fat_mov.srk_lng IS 'Chave para dimensão Language (Idioma)';
-COMMENT ON COLUMN dw.fat_mov.srk_cmp IS 'Chave para dimensão Company (Produtora)';
+COMMENT ON COLUMN dw.fat_mov.srk_cmp IS 'Chave para dimensão Company (Produtora Principal)';
 COMMENT ON COLUMN dw.fat_mov.srk_ctr IS 'Chave para dimensão Country (País)';
 COMMENT ON COLUMN dw.fat_mov.srk_rte IS 'Chave para dimensão Runtime (Duração)';
-COMMENT ON COLUMN dw.fat_mov.srk_pco IS 'Chave para dimensão de produtoras';
+COMMENT ON COLUMN dw.fat_mov.movie_id IS 'ID original do filme para ligação com tabela ponte';
