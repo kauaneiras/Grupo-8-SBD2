@@ -237,13 +237,85 @@ GROUP BY g.gen
 ORDER BY total_filmes DESC;
 
 -- =============================================================================
--- Consulta 10: Filmes com maior duração (runtime)
+-- Consulta 10: Análise de Duração x Popularidade (Engajamento)
 -- =============================================================================
 SELECT 
-    f.ttl AS titulo,
-    rt.rte AS duracao_minutos
+    CASE 
+        WHEN rt.rte < 90 THEN '1. Curto (< 90 min)'
+        WHEN rt.rte BETWEEN 90 AND 120 THEN '2. Padrão (90-120 min)'
+        WHEN rt.rte BETWEEN 121 AND 150 THEN '3. Longo (121-150 min)'
+        WHEN rt.rte > 150 THEN '4. Épico (> 150 min)'
+        ELSE 'Desconhecido'
+    END AS faixa_duracao,
+    
+    COUNT(f.srk_ttl) AS qtd_filmes_amostra,
+    ROUND(AVG(e.pop)::NUMERIC, 2) AS popularidade_media,
+    ROUND(AVG(e.vot_avg)::NUMERIC, 2) AS nota_media,
+   
 FROM dw.fat_mov f
-LEFT JOIN dw.dim_rte rt ON f.srk_rte = rt.srk_rte
-WHERE rt.rte IS NOT NULL
-ORDER BY rt.rte DESC
-LIMIT 10;
+INNER JOIN dw.dim_rte rt ON f.srk_rte = rt.srk_rte
+INNER JOIN dw.dim_eng e ON f.srk_eng = e.srk_eng
+LEFT JOIN dw.dim_pft p ON f.srk_pft = p.srk_pft
+WHERE rt.rte > 0
+GROUP BY 1
+ORDER BY popularidade_media DESC;
+
+
+-- =============================================================================
+-- Consulta 11: Risco e Retorno por Faixa Orçamentária (Budget Tier)
+-- =============================================================================
+SELECT 
+    p.bdg_tir AS faixa_orcamento,
+    COUNT(f.srk_ttl) AS qtd_filmes_analisados,
+    
+    -- Retorno Médio sobre Investimento 
+    ROUND(AVG(p.ret_inv)::NUMERIC, 2) AS roi_medio_percentual,
+    ROUND(AVG(p.pft) / 1e6, 2) AS lucro_liquido_medio_milhoes,
+    ROUND(
+        (COUNT(CASE WHEN p.pfe = TRUE THEN 1 END)::NUMERIC / COUNT(*)) * 100, 
+    2) AS probabilidade_sucesso_pct,
+    ROUND(AVG(p.bdg) / 1e6, 2) AS custo_medio_milhoes
+FROM dw.fat_mov f
+INNER JOIN dw.dim_pft p ON f.srk_pft = p.srk_pft
+WHERE p.bdg > 0 
+GROUP BY p.bdg_tir
+HAVING COUNT(f.srk_ttl) > 50 
+ORDER BY roi_medio_percentual DESC;
+
+-- =============================================================================
+-- Consulta 12 (CTE): Sazonalidade de Retorno (Melhor mês para lançar)
+-- =============================================================================
+WITH performance_mensal AS (
+    -- Calcular métricas agregadas por mês
+    SELECT 
+        r.rel_mon AS numero_mes,
+        r.rel_mon_nam AS mes_lancamento,
+        COUNT(f.srk_ttl) AS volume_lancamentos,
+        AVG(p.rev) AS receita_media_raw,
+        AVG(p.ret_inv) AS roi_medio_raw
+    FROM dw.fat_mov f
+    INNER JOIN dw.dim_rel r ON f.srk_rel = r.srk_rel
+    INNER JOIN dw.dim_pft p ON f.srk_pft = p.srk_pft
+    WHERE p.bdg > 1000000 
+    GROUP BY r.rel_mon, r.rel_mon_nam
+),
+ranking_sazonalidade AS (
+    SELECT 
+        numero_mes,
+        mes_lancamento,
+        volume_lancamentos,
+        ROUND(receita_media_raw / 1e6, 2) AS receita_media_milhoes,
+        ROUND(roi_medio_raw::NUMERIC, 2) AS roi_medio,
+        -- Ranking baseado no ROI (1 = Melhor mês)
+        RANK() OVER (ORDER BY roi_medio_raw DESC) AS rank_atratividade
+    FROM performance_mensal
+)
+SELECT 
+    numero_mes,
+    mes_lancamento,
+    volume_lancamentos,
+    receita_media_milhoes,
+    roi_medio,
+    rank_atratividade
+FROM ranking_sazonalidade
+ORDER BY rank_atratividade;
