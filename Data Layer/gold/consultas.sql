@@ -187,6 +187,7 @@ WITH metricas_por_produtora AS (
     GROUP BY g.gen, c.prd_cmp
     HAVING COUNT(f.srk_ttl) >= 3 -- Ao menos 3 filmes para ignorar casos a parte
 ),
+
 ranking_dominancia AS (
     -- Rankear quem tem a melhor média dentro de cada gênero
     SELECT 
@@ -250,8 +251,7 @@ SELECT
     
     COUNT(f.srk_ttl) AS qtd_filmes_amostra,
     ROUND(AVG(e.pop)::NUMERIC, 2) AS popularidade_media,
-    ROUND(AVG(e.vot_avg)::NUMERIC, 2) AS nota_media,
-   
+    ROUND(AVG(e.vot_avg)::NUMERIC, 2) AS nota_media
 FROM dw.fat_mov f
 INNER JOIN dw.dim_rte rt ON f.srk_rte = rt.srk_rte
 INNER JOIN dw.dim_eng e ON f.srk_eng = e.srk_eng
