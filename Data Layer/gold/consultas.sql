@@ -142,3 +142,69 @@ SELECT
 FROM ranking_generos
 WHERE ranking_decada <= 5
 ORDER BY decada DESC, ranking_decada;
+
+-- =============================================================================
+-- Consulta 6: Filme mais lucrativo por gênero
+-- =============================================================================
+WITH filmes_rankeados_por_genero AS (
+    SELECT 
+        g.gen AS genero,
+        f.ttl AS titulo_filme,
+        p.pft AS lucro,
+        ROW_NUMBER() OVER(
+            PARTITION BY g.gen
+            ORDER BY p.pft DESC
+        ) AS ranking
+    FROM dw.fat_mov f
+    JOIN dw.dim_gen g ON f.srk_gen = g.srk_gen
+    JOIN dw.dim_pft p ON f.srk_pft = p.srk_pft
+    WHERE p.pft IS NOT NULL AND p.pft > 0
+)
+SELECT 
+    genero,
+    titulo_filme,
+    lucro
+FROM filmes_rankeados_por_genero
+WHERE ranking = 1
+ORDER BY lucro DESC;
+
+-- =============================================================================
+-- Consulta 7 (CTE): Produtora com maior lucro médio por gênero
+-- =============================================================================
+
+WITH metricas_por_produtora AS (
+    -- Calcular a média por Gênero e Produtora
+    SELECT 
+        g.gen AS genero,
+        c.prd_cmp AS produtora,
+        AVG(p.pft) AS lucro_medio,
+        COUNT(f.srk_ttl) AS qtd_filmes
+    FROM dw.fat_mov f
+    JOIN dw.dim_gen g ON f.srk_gen = g.srk_gen
+    JOIN dw.dim_cmp c ON f.srk_cmp = c.srk_cmp
+    JOIN dw.dim_pft p ON f.srk_pft = p.srk_pft
+    WHERE p.pft IS NOT NULL 
+    GROUP BY g.gen, c.prd_cmp
+    HAVING COUNT(f.srk_ttl) >= 3 -- Ao menos 3 filmes para ignorar casos a parte
+),
+ranking_dominancia AS (
+    -- Rankear quem tem a melhor média dentro de cada gênero
+    SELECT 
+        genero,
+        produtora,
+        lucro_medio,
+        qtd_filmes,
+        ROW_NUMBER() OVER(
+            PARTITION BY genero 
+            ORDER BY lucro_medio DESC
+        ) AS ranking
+    FROM metricas_por_produtora
+)
+SELECT 
+    genero,
+    produtora,
+    ROUND(lucro_medio, 2) AS media_lucro,
+    qtd_filmes
+FROM ranking_dominancia
+WHERE ranking = 1
+ORDER BY lucro_medio DESC;
