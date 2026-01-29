@@ -14,25 +14,27 @@ SELECT
   p.bdg AS orcamento,
   p.pft AS lucro,
   p.ret_inv AS roi
-FROM gold.fat_mov f
-JOIN gold.dim_pft p ON p.srk_pft = f.srk_pft
-LEFT JOIN gold.dim_rel d ON d.srk_rel = f.srk_rel
+FROM dw.fat_mov f
+JOIN dw.dim_pft p ON p.srk_pft = f.srk_pft
+LEFT JOIN dw.dim_rel d ON d.srk_rel = f.srk_rel
 ORDER BY p.rev DESC NULLS LAST
 LIMIT 20;
 
 -- =============================================================================
--- Consulta 2: Listar os 50 filmes mais recentes com suas receitas
+-- Consulta 2: Listar os 50 filmes populares
 -- =============================================================================
 SELECT
-  f.srk_ttl,
-  f.ttl AS titulo,
-  f.crt AS created_at,
-  d.rel_dat AS data_lancamento,
-  p.rev AS receita
-FROM gold.fat_mov f
-LEFT JOIN gold.dim_rel d ON d.srk_rel = f.srk_rel
-LEFT JOIN gold.dim_pft p ON p.srk_pft = f.srk_pft
-ORDER BY f.crt DESC NULLS LAST
+    f.srk_ttl AS id_filme,
+    f.ttl AS titulo,
+    f.org_ttl AS titulo_original,
+    f.crt AS criado_em,
+    e.vot_avg  AS nota_media,
+    e.vot_cnt  AS qtd_votos,
+    e.pop      AS popularidade
+FROM dw.fat_mov AS f
+LEFT JOIN dw.dim_eng AS e
+       ON f.srk_eng = e.srk_eng
+ORDER BY e.pop DESC NULLS LAST
 LIMIT 50;
 
 -- =============================================================================
