@@ -118,19 +118,6 @@ CREATE TABLE dw.dim_gen (
 
 COMMENT ON TABLE dw.dim_gen IS 'Dimensão de Gêneros (Genres)';
 
--- -----------------------------------------------------------------------------
--- Tabela: dw.dim_prd_cmp (Production Companies)
-
--- -----------------------------------------------------------------------------
-CREATE TABLE dw.dim_prd_cmp (
-    srk_pco     INTEGER NOT NULL,          -- Surrogate Key
-    pco         VARCHAR(255),              -- company
-    CONSTRAINT pk_dim_prd_cmp PRIMARY KEY (srk_pco)
-);
-
-COMMENT ON TABLE dw.dim_prd_cmp IS 'Dimensão de todas as produtoras';
-
-
 -- =============================================================================
 -- TABELA FATO: dw.fat_mov (Fato Filme)
 -- =============================================================================
