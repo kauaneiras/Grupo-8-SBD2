@@ -118,19 +118,6 @@ CREATE TABLE dw.dim_gen (
 
 COMMENT ON TABLE dw.dim_gen IS 'Dimensão de Gêneros (Genres)';
 
--- -----------------------------------------------------------------------------
--- Tabela: dw.dim_prd_cmp (Production Companies)
-
--- -----------------------------------------------------------------------------
-CREATE TABLE dw.dim_prd_cmp (
-    srk_pco     INTEGER NOT NULL,          -- Surrogate Key
-    pco         VARCHAR(255),              -- company
-    CONSTRAINT pk_dim_prd_cmp PRIMARY KEY (srk_pco)
-);
-
-COMMENT ON TABLE dw.dim_prd_cmp IS 'Dimensão de todas as produtoras';
-
-
 -- =============================================================================
 -- TABELA FATO: dw.fat_mov (Fato Filme)
 -- =============================================================================
@@ -150,7 +137,6 @@ CREATE TABLE dw.fat_mov (
     srk_cmp     INTEGER,                   -- FK para dim_cmp
     srk_ctr     INTEGER,                   -- FK para dim_ctr
     srk_rte     INTEGER,                   -- FK para dim_rte
-    srk_pco     INTEGER,                   -- FK para dim_prd_cmp
     
     CONSTRAINT pk_fat_mov PRIMARY KEY (srk_ttl)
 );
@@ -180,10 +166,6 @@ ALTER TABLE dw.fat_mov ADD CONSTRAINT frk_ctr
 ALTER TABLE dw.fat_mov ADD CONSTRAINT frk_rte 
     FOREIGN KEY (srk_rte) REFERENCES dw.dim_rte(srk_rte);
 
-ALTER TABLE dw.fat_mov ADD CONSTRAINT frk_prd 
-    FOREIGN KEY (srk_pco) REFERENCES dw.dim_prd_cmp(srk_pco);
-
-
 -- =============================================================================
 -- ÍNDICES
 -- =============================================================================
@@ -196,8 +178,6 @@ CREATE INDEX idx_fat_mov_srk_lng ON dw.fat_mov(srk_lng);
 CREATE INDEX idx_fat_mov_srk_cmp ON dw.fat_mov(srk_cmp);
 CREATE INDEX idx_fat_mov_srk_ctr ON dw.fat_mov(srk_ctr);
 CREATE INDEX idx_fat_mov_srk_rte ON dw.fat_mov(srk_rte);
-CREATE INDEX idx_fat_mov_srk_pco ON dw.fat_mov(srk_pco);
-
 
 -- =============================================================================
 -- COMENTÁRIOS
@@ -214,4 +194,3 @@ COMMENT ON COLUMN dw.fat_mov.srk_lng IS 'Chave para dimensão Language (Idioma)'
 COMMENT ON COLUMN dw.fat_mov.srk_cmp IS 'Chave para dimensão Company (Produtora)';
 COMMENT ON COLUMN dw.fat_mov.srk_ctr IS 'Chave para dimensão Country (País)';
 COMMENT ON COLUMN dw.fat_mov.srk_rte IS 'Chave para dimensão Runtime (Duração)';
-COMMENT ON COLUMN dw.fat_mov.srk_pco IS 'Chave para dimensão de produtoras';
