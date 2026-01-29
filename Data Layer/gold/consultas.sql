@@ -208,3 +208,42 @@ SELECT
 FROM ranking_dominancia
 WHERE ranking = 1
 ORDER BY lucro_medio DESC;
+
+-- =============================================================================
+-- Consulta 8: Nota média por gênero
+-- =============================================================================
+
+SELECT 
+    g.gen AS genero,
+    ROUND(AVG(e.vot_avg)::NUMERIC, 2) AS nota_media,
+    COUNT(f.srk_ttl) AS qtd_filmes
+FROM dw.dim_gen g
+LEFT JOIN dw.fat_mov f ON g.srk_gen = f.srk_gen
+LEFT JOIN dw.dim_eng e ON f.srk_eng = e.srk_eng
+WHERE e.vot_avg IS NOT NULL
+GROUP BY g.gen
+ORDER BY nota_media DESC;
+
+-- =============================================================================
+-- Consulta 9: Contagem de filmes por gênero
+-- =============================================================================
+
+SELECT 
+    g.gen AS genero,
+    COUNT(f.srk_ttl) AS total_filmes
+FROM dw.dim_gen g
+LEFT JOIN dw.fat_mov f ON g.srk_gen = f.srk_gen
+GROUP BY g.gen
+ORDER BY total_filmes DESC;
+
+-- =============================================================================
+-- Consulta 10: Filmes com maior duração (runtime)
+-- =============================================================================
+SELECT 
+    f.ttl AS titulo,
+    rt.rte AS duracao_minutos
+FROM dw.fat_mov f
+LEFT JOIN dw.dim_rte rt ON f.srk_rte = rt.srk_rte
+WHERE rt.rte IS NOT NULL
+ORDER BY rt.rte DESC
+LIMIT 10;
